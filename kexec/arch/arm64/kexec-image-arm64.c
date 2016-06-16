@@ -123,7 +123,7 @@ int image_arm64_load(int argc, char **argv, const char *kernel_buf,
 			info->entry, kernel_size, 0);
 
 	result = arm64_load_other_segments(info, (unsigned long)info->entry,
-		header_option);
+		header_option, kernel_buf, kernel_size);
 
 	if (header_option)
 		free(header_option);

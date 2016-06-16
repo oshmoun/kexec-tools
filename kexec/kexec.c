@@ -726,7 +726,7 @@ static int my_load(const char *type, int fileind, int argc, char **argv,
 		  kernel_buf, kernel_size);
 
 	if (get_memory_ranges(&info.memory_range, &info.memory_ranges,
-		info.kexec_flags) < 0 || info.memory_ranges == 0) {
+		info.kexec_flags,kernel_buf,kernel_size) < 0 || info.memory_ranges == 0) {
 		fprintf(stderr, "Could not get memory layout\n");
 		return -1;
 	}

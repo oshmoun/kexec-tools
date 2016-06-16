@@ -183,7 +183,7 @@ long kernel_version(void);
 
 void usage(void);
 int get_memory_ranges(struct memory_range **range, int *ranges,
-						unsigned long kexec_flags);
+						unsigned long kexec_flags, char *kernel_buf, off_t kernel_size);
 int valid_memory_range(struct kexec_info *info,
 		       unsigned long sstart, unsigned long send);
 void print_segments(FILE *file, struct kexec_info *info);
