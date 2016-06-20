@@ -566,6 +566,7 @@ static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dt
 	devid.soc_rev = fdt32_to_cpu(devid.soc_rev);
 
 	printf("DTB: platform %u hw %u soc 0x%x\n", devid.platform_id, devid.hardware_id, devid.soc_rev);
+
 	dtb = kernel;
 	while(dtb + sizeof(struct fdt_header) < kernel_end)
 	{
@@ -575,7 +576,7 @@ static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dt
 			dtb++;
 			continue;
 		} else {
-			printf("DTB: found dtb header at %zu\n",__LINE__, dtb);
+			printf("DTB: found dtb header at %zu\n", dtb);
 		}
 
 		uint32_t dtb_soc_rev_id;

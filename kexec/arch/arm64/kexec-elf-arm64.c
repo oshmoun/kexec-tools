@@ -45,7 +45,8 @@ on_exit:
 }
 
 int elf_arm64_load(int argc, char **argv, const char *kernel_buf,
-	off_t kernel_size, struct kexec_info *info)
+	off_t kernel_size, const char *kernel_compressed_buf,
+	off_t kernel_compressed_size, struct kexec_info *info)
 {
 	char *header_option = NULL;
 	int result;

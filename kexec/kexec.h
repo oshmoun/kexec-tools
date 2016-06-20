@@ -195,7 +195,7 @@ unsigned long locate_hole(struct kexec_info *info,
 
 typedef int (probe_t)(const char *kernel_buf, off_t kernel_size);
 typedef int (load_t )(int argc, char **argv,
-	const char *kernel_buf, off_t kernel_size, 
+	const char *kernel_buf, off_t kernel_size, const char *kernel_compressed_buf, off_t kernel_compressed_size,
 	struct kexec_info *info);
 typedef void (usage_t)(void);
 struct file_type {
