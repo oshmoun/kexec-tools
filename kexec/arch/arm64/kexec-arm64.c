@@ -801,8 +801,11 @@ int arm64_load_other_segments(struct kexec_info *info,
 		return result;
 	}
 
-	if (result && arm64_opts.dtb)
+	if (result && arm64_opts.dtb) {
+		// skip header if loading dtb.img
+		dtb_2.buf = dtb_2.buf+2048;
 		dtb_1 = dtb_2;
+	}
 	else if (!result && !arm64_opts.dtb)
 		dtb_2 = dtb_1;
 
