@@ -499,7 +499,6 @@ static int read_sys_dtb(struct dtb *dtb, const char *command_line)
 }
 
 #define DTB_MAGIC               0xedfe0dd0
-#define DTB_OFFSET              0x2C
 #define DTB_PAD_SIZE            1024
 #define INVALID_SOC_REV_ID 0xFFFFFFFF
 
@@ -544,7 +543,6 @@ static uint32_t dtb_compatible(void *dtb, struct msm_id *devid)
 
 static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dtb_struct)
 {
-	uint32_t app_dtb_offset = 0;
 	char *kernel_end = (char*)kernel + kernel_len;
 	char *dtb;
 	FILE *f;
@@ -568,25 +566,29 @@ static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dt
 	devid.soc_rev = fdt32_to_cpu(devid.soc_rev);
 
 	printf("DTB: platform %u hw %u soc 0x%x\n", devid.platform_id, devid.hardware_id, devid.soc_rev);
-
-	memcpy((void*) &app_dtb_offset, (void*) (kernel + DTB_OFFSET), sizeof(uint32_t));
-
-	dtb = (char*)kernel + app_dtb_offset;
+	dtb = kernel;
 	while(dtb + sizeof(struct fdt_header) < kernel_end)
 	{
+
+		int ret = fdt_check_header(dtb);
+		if (ret != 0) {
+			dtb++;
+			continue;
+		} else {
+			printf("DTB: found dtb header at %zu\n",__LINE__, dtb);
+		}
+
 		uint32_t dtb_soc_rev_id;
-		struct fdt_header dtb_hdr;
 		uint32_t dtb_size;
 
-		/* the DTB could be unaligned, so extract the header,
-		 * and operate on it separately */
-		memcpy(&dtb_hdr, dtb, sizeof(struct fdt_header));
-		if (fdt_check_header((const void *)&dtb_hdr) != 0 ||
-		    (dtb + fdt_totalsize((const void *)&dtb_hdr) > kernel_end))
+		// stop if we go over kernel_end
+		if (dtb + fdt_totalsize(dtb) > kernel_end) {
+			printf("DTB: went over kernel_end, BREAK!\n");
 			break;
-		dtb_size = fdt_totalsize(&dtb_hdr);
-
+		}
+		dtb_size = fdt_totalsize(dtb);
 		dtb_soc_rev_id = dtb_compatible(dtb, &devid);
+		printf("DTB: now in line %d, dtb_soc_rev_id: %d, devid.soc_rev: %d\n",__LINE__, dtb_soc_rev_id, devid.soc_rev);
 		if (dtb_soc_rev_id == devid.soc_rev) {
 			dtb_struct->buf = xmalloc(dtb_size);
 			memcpy(dtb_struct->buf, dtb, dtb_size);
@@ -597,6 +599,7 @@ static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dt
 				   (dtb_soc_rev_id < devid.soc_rev)) {
 			/* if current bestmatch is less than new dtb_soc_rev_id then update
 			   bestmatch_tag */
+			printf("DTB: now in line %d, bestmatch_soc_rev_id: %d, INVALID_SOC_REV_ID: %d\n",__LINE__, bestmatch_soc_rev_id, INVALID_SOC_REV_ID);
 			if((bestmatch_soc_rev_id == INVALID_SOC_REV_ID) ||
 			   (bestmatch_soc_rev_id < dtb_soc_rev_id)) {
 				bestmatch_tag = dtb;
@@ -608,7 +611,7 @@ static int get_appended_dtb(const char *kernel, off_t kernel_len, struct dtb *dt
 		/* goto the next device tree if any */
 		dtb += dtb_size;
 	}
-
+	printf("DTB: now in line %d, bestmatch_tag: %d, \n",__LINE__, bestmatch_tag);
 	if(bestmatch_tag) {
 		printf("DTB: bestmatch 0x%x, my id 0x%x\n", bestmatch_soc_rev_id, devid.soc_rev);
 		dtb_struct->buf = xmalloc(bestmatch_tag_size);
@@ -769,7 +772,6 @@ int arm64_load_other_segments(struct kexec_info *info,
 	char *initrd_buf = NULL;
 	struct dtb dtb_1 = {.name = "dtb_1"};
 	struct dtb dtb_2 = {.name = "dtb_2"};
-	struct dtb dtb_3 = {.name = "dtb_3"};
 
 	char command_line[COMMAND_LINE_SIZE] = "";
 
